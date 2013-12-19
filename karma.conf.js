@@ -27,7 +27,7 @@ module.exports = function(config) {
       "test/helpers/fixtures.js",
 
       // code you want to test
-      "src/js/accordion.js",
+      "src/js/*.js",
 
       // test code
       "test/spec/*.js"

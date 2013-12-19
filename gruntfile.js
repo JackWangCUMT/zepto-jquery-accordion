@@ -1,8 +1,25 @@
 module.exports = function(grunt) {
+  'use strict';
+
   require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+
+    jshint: {
+      src: ['gruntfile.js', 'src/js/**/*.js', 'test/spec/**/*.js'],
+      options: {
+        expr: true
+      }
+    },
+
+    uglify: {
+      build: {
+        files: {
+          'u$.accordion.js': 'src/js/u$.accordion.js'
+        }
+      }
+    },
 
     karma: {
       unit: {
@@ -11,26 +28,18 @@ module.exports = function(grunt) {
       }
     },
 
-    uglify: {
-      build: {
-        files: {
-          'accordion.js': 'src/js/accordion.js'
-        }
-      }
-    },
-
     watch: {
       js: {
-        files: 'src/js/accordion.js',
-        tasks: ['uglify']
+        files: 'src/js/*.js',
+        tasks: ['jshint', 'uglify']
       },
 
       karma: {
-        files: ['src/*.js', 'test/**/*.js'],
+        files: ['src/js/*.js', 'test/**/*.js'],
         tasks: ['karma:unit:run']
       }
     }
   });
 
-  grunt.registerTask('default', []);
+  grunt.registerTask('default', ['jshint', 'karma', 'uglify']);
 };

@@ -19,6 +19,15 @@ describe('Zepto-Compatible jQuery Accordion', function() {
     $togglers.eq(i).trigger('click');
   }
 
+  function keyupToggler(i, key) {
+    var e = $.Event('keyup');
+
+    e.which = key || 13;
+    i || (i = 0);
+
+    $togglers.eq(i).trigger(e);
+  }
+
   function before() {
     loadFixtures('static.html');
     $togglers = $('.js-toggler');
@@ -69,6 +78,16 @@ describe('Zepto-Compatible jQuery Accordion', function() {
       clickToggler();
       expect(instance.toggle).toHaveBeenCalled();
     });
+
+    it('can be a function', function() {
+      instance.options.togglerClass = function($clicked) {
+        return $clicked.hasClass('.js-toggler');
+      };
+      spyOn(instance, 'toggle');
+
+      clickToggler();
+      expect(instance.toggle).toHaveBeenCalled();
+    });
   });
 
   describe('A fold', function() {
@@ -85,6 +104,11 @@ describe('Zepto-Compatible jQuery Accordion', function() {
 
     it('can be expanded', function() {
       clickToggler();
+      expect($folds.first()).not.toHaveClass('is-collapsed');
+    });
+
+    it('can be expanded by clicking an enter key', function() {
+      keyupToggler();
       expect($folds.first()).not.toHaveClass('is-collapsed');
     });
 
@@ -109,15 +133,24 @@ describe('Zepto-Compatible jQuery Accordion', function() {
       clickToggler();
       expect($folds.first()).toHaveClass('is-collapsed');
     });
+
+    it('can be collapsed when another fold is expanded', function() {
+      instance.options.multiOpen = false;
+
+      clickToggler(1);
+      clickToggler();
+      expect($folds.eq(1)).toHaveClass('is-collapsed');
+      expect($folds.first()).not.toHaveClass('is-collapsed');
+    });
   });
 
-  /*describe('Event Emitter', function() {
+  describe('Event Emitter', function() {
     var onShow;
 
     beforeEach(function() {
       onShow = jasmine.createSpy('onShow');
  
-      instance = u$.accordion({
+      instance = u$.accordion($(document.body), {
         events: Backbone.Events
       });
     });
@@ -125,7 +158,7 @@ describe('Zepto-Compatible jQuery Accordion', function() {
     it('can take a Backbone-style events object', function() {
       instance.on('show', onShow);
 
-      instance.show($modals.eq(0));
+      instance.expand($folds.first(), 0);
 
       expect(onShow).toHaveBeenCalled();
     });
@@ -134,9 +167,9 @@ describe('Zepto-Compatible jQuery Accordion', function() {
       instance.options.events = null;
       instance.options.onShow = onShow;
 
-      instance.show($modals.eq(0));
+      instance.expand($folds.first(), 0);
       
-      expect(onShow).toHaveBeenCalled()
+      expect(onShow).toHaveBeenCalled();
     });
-  });*/
+  });
 });
