@@ -59,24 +59,6 @@ var defaults = {
   expandedClass: 'is-expanded',
 
   /**
-   * Either the existing fold `$` elements, a selector to fetch
-   * existing folds from the DOM, or an HTML string that will be
-   * passed to `$`, or an array of data that will be passed to `$`
-   * to create a new fold when the AJAX data is fetched.
-   *
-      `folds: '.js-fold'`
-   * - OR -
-      `folds: $('.js-fold')`
-   * - OR -
-      `folds: ['<div />', {
-        'class': 'js-fold'
-      }]`
-   * - OR -
-      `folds: '<div class="fold"></div>'`
-   */
-  //folds: null,
-
-  /**
    * The CSS class used to fetch folds from the DOM when instances
    * are created.
    */
@@ -183,8 +165,17 @@ accordionProto = {
     }
   },
 
+  /**
+   * Adds ARIA attributes to the togglers and folds to make the accordion
+   * more accessible. Since the `aria-controls` and `aria-labelledby`
+   * attributes must be unique, it is important to specify a namespace
+   * in the options.
+   *
+   * @param $togglers The `$` toggler elements. The corresponding fold
+   *                  will be fetched via the `getFold` method.
+   */
   setAriaAttributes: function($togglers) {
-    var ns = (this.options.namespace || '') + '-accordion-';
+    var ns = (this.options.eventNamespace || '') + '-accordion-';
 
     $togglers.each(function(i, toggler) {
       var id = ns + i.toString(),
@@ -368,8 +359,8 @@ ajaxAccordionProto = $.extend(Object.create(accordionProto), u$.cacheMixin,
 
   options: $.extend({}, defaults, {
     // EVENTS
-    // beforeSend($fold, index, $togglers, xhr, settings)
-    // ajaxError($fold, index, $togglers, xhr, errorType, error)
+    // beforeSend($fold, $togglers, index, xhr, settings)
+    // ajaxError($fold, $togglers, index, xhr, errorType, error)
 
     /**
      * The CSS class applied to the loader element. Loaders also have
@@ -383,14 +374,6 @@ ajaxAccordionProto = $.extend(Object.create(accordionProto), u$.cacheMixin,
     // loaderHTML: '<div />'
 
     /**
-     * Is the AJAX data coming back as HTML or JSON? If JSON, then
-     * either the built-in templating engine will be used (if the
-     * `template` option is a string) or you can use another more
-     * powerful engine like Handlebars (if `template` is a function).
-     */
-    // responseType: 'html', /* default; or 'json'*/
-
-    /**
      * Function that generates the string passed to `$.ajax`'s `data`
      * attribute. If no function is provided, then an empty string is
      * used instead.
@@ -400,6 +383,14 @@ ajaxAccordionProto = $.extend(Object.create(accordionProto), u$.cacheMixin,
      * @returns The generated query string.
      */
     // query: function($toggler) {},
+
+    /**
+     * Is the AJAX data coming back as HTML or JSON? If JSON, then
+     * either the built-in templating engine will be used (if the
+     * `template` option is a string) or you can use another more
+     * powerful engine like Handlebars (if `template` is a function).
+     */
+    // responseType: 'html', /* default; or 'json'*/
     
     /**
      * The template for converting JSON to HTML. Only needed if the
@@ -480,7 +471,7 @@ ajaxAccordionProto = $.extend(Object.create(accordionProto), u$.cacheMixin,
         data: query,
         beforeSend: function(xhr, settings) {
           this.showLoader();
-          this.emit('beforeSend', $fold, index, this.$togglers, xhr, settings);
+          this.emit('beforeSend', $fold, this.$togglers, index, xhr, settings);
         }.bind(this),
         success: function(data, status, xhr) {
           this.hideLoader();
@@ -488,8 +479,8 @@ ajaxAccordionProto = $.extend(Object.create(accordionProto), u$.cacheMixin,
           this.render(xhr.responseText, $fold, index);
         }.bind(this),
         error: function(xhr, errorType, error) {
-          this.emit('ajaxError', $fold, index, xhr, this.$togglers,
-              errorType, error);
+          this.emit('ajaxError', $fold, this.$togglers, index, xhr, errorType,
+              error);
         }.bind(this)
       });
   }
