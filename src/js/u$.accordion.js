@@ -20,12 +20,10 @@ u$.accordion($(document.body), {
 });
 
 */
-window.u$ || (window.u$ = {});
-
-(function($, window, document, ns) {
+(function($, window, document) {
 'use strict';
 
-ns || (ns = window);
+window.u$ || (window.u$ = {});
 
 var defaults = {
   collapsedClass: 'is-collapsed',
@@ -420,7 +418,7 @@ ajaxAccordionProto = $.extend(Object.create(accordionProto), u$.cacheMixin,
  *
  * @returns The instance object.
  */
-ns.accordion = function($container, options) {
+u$.accordion = function($container, options) {
   var proto = accordionProto,
     instance;
 
@@ -444,4 +442,4 @@ ns.accordion = function($container, options) {
   return instance;
 };
 
-})((window.Zepto || window.jQuery), window, document, u$);
+})((window.Zepto || window.jQuery), window, document);

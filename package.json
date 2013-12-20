@@ -10,8 +10,7 @@
     "grunt-contrib-jasmine": "*",
     "grunt-contrib-watch": "*",
     "matchdep": "*",
-    "grunt-karma": "~0.6.2",
-    "grunt-cli": "~0.1.11"
+    "grunt-karma": "~0.6.2"
   },
   "peerDependencies": {
     "grunt-cli": "~0.1.11"
