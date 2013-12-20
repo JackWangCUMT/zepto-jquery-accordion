@@ -45,7 +45,8 @@ describe('Zepto-Compatible jQuery Accordion', function() {
       before();
 
       instance = u$.accordion($(document.body), {
-        folds: $folds
+        folds: $folds,
+        setAriaAttributes: false,
       });
     });
     afterEach(function() {
@@ -58,6 +59,37 @@ describe('Zepto-Compatible jQuery Accordion', function() {
       clickToggler();
       expect(instance.toggle).not.toHaveBeenCalled();
     });
+
+    it('can add ARIA attributes', function() {
+      var $toggler = $togglers.first(),
+        $fold = $folds.first();
+
+      instance.options.setAriaAttributes = true;
+      instance.reset();
+
+      expect($toggler.attr('aria-controls')).toBeDefined();
+      expect($toggler.attr('role')).toEqual('tab');
+      expect($toggler.attr('aria-selected')).toBeDefined();
+      expect($toggler.attr('tabindex')).toEqual('-1');
+
+      expect($fold.attr('aria-labelledby')).toBeDefined();
+      expect($fold.attr('role')).toEqual('tabpanel');
+      expect($fold.attr('aria-expanded')).toBeDefined();
+      expect($fold.attr('aria-hidden')).toBeDefined();
+    });
+
+    it('can turn off ARIA attributes', function() {
+      var $toggler = $togglers.first(),
+        $fold = $folds.first();
+
+      expect($toggler.attr('aria-controls')).not.toBeDefined();
+    });
+
+    it('resets the `setAriaAttributes` option to true after the' +
+        ' instance has been created', function() {
+
+      expect(instance.options.setAriaAttributes).toBe(true);
+    });
   });
 
   describe('A toggler', function() {
@@ -65,7 +97,8 @@ describe('Zepto-Compatible jQuery Accordion', function() {
       before();
 
       instance = u$.accordion($(document.body), {
-        folds: $folds
+        folds: $folds,
+        setAriaAttributes: false
       });
     });
     afterEach(function() {
@@ -95,7 +128,8 @@ describe('Zepto-Compatible jQuery Accordion', function() {
       before();
 
       instance = u$.accordion($(document.body), {
-        folds: $folds
+        folds: $folds,
+        setAriaAttributes: false
       });
     });
     afterEach(function() {
@@ -151,7 +185,8 @@ describe('Zepto-Compatible jQuery Accordion', function() {
       onShow = jasmine.createSpy('onShow');
  
       instance = u$.accordion($(document.body), {
-        events: Backbone.Events
+        events: Backbone.Events,
+        setAriaAttributes: false
       });
     });
 

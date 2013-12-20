@@ -26,6 +26,16 @@ u$.accordion($(document.body), {
 window.u$ || (window.u$ = {});
 
 var defaults = {
+  // EVENTS
+  // detach($container, $togglers, $folds);
+  // beforeShow($fold, $togglers, index)
+  // show($fold, $togglers, index)
+  // beforeHide($fold, $togglers, index)
+  // hide($fold, $togglers, index)
+
+  /**
+   * The CSS class applied to folds after they are closed.
+   */
   collapsedClass: 'is-collapsed',
 
   /**
@@ -43,6 +53,9 @@ var defaults = {
    */
   events: null,
 
+  /**
+   * The CSS class applied to folds before they are opened.
+   */
   expandedClass: 'is-expanded',
 
   /**
@@ -63,10 +76,32 @@ var defaults = {
    */
   //folds: null,
 
+  /**
+   * The CSS class used to fetch folds from the DOM when instances
+   * are created.
+   */
   foldClass: 'js-fold',
 
+  /**
+   * Should multiple folds be allowed to be open at once?
+   */
   multiOpen: true,
 
+  /**
+   * Since folds are hidden using `display: none`, ARIA attributes
+   * are also used so that screenreader users can still access the
+   * content. See the `setAriaAttributes` method for a complete list
+   * of attributes added.
+   *
+   * If you prefer to add these attributes yourself, set this to `false`
+   * and save the browser the additional processing requirement.
+   */
+  setAriaAttributes: true,
+
+  /**
+   * The CSS class used to fetch togglers from the DOM when instances
+   * are created.
+   */
   togglerClass: 'js-toggler'
 },
 
@@ -138,6 +173,35 @@ accordionProto = {
 
     this.$togglers = this.$container.find('.' + opts.togglerClass);
     this.$folds = this.$container.find('.' + opts.foldClass);
+
+    if (this.options.setAriaAttributes) {
+      this.setAriaAttributes(this.$togglers);
+    } else {
+      // Reset the ARIA attributes option so that future
+    // calls to `reset` will update these
+    this.options.setAriaAttributes = true;
+    }
+  },
+
+  setAriaAttributes: function($togglers) {
+    var ns = (this.options.namespace || '') + '-accordion-';
+
+    $togglers.each(function(i, toggler) {
+      var id = ns + i.toString(),
+        $toggler = $(toggler),
+        $fold = this.getFold($toggler, i),
+        isExpanded = !$fold.hasClass(this.options.collapsedClass);
+
+      $toggler.attr('aria-controls', id);
+      $toggler.attr('role', 'tab');
+      $toggler.attr('aria-selected', 'false');
+      $toggler.attr('tabindex', '-1');
+
+      $fold.attr('aria-labelledby', id);
+      $fold.attr('role', 'tabpanel');
+      $fold.attr('aria-expanded', isExpanded);
+      $fold.attr('aria-hidden', !isExpanded);
+    }.bind(this));
   },
 
   /**
@@ -163,7 +227,7 @@ accordionProto = {
    * @param $togglers If provided, these will be removed from the collection.
    *                  Otherwise, all events will be detached from the instance.
    *
-   * @fires `detach($togglers, $container, $folds);`
+   * @fires `detach($container, $togglers, $folds);`
    */
   detach: function($togglers) {
     var ns = (this.options.eventNamespace || '') + 'Accordion',
@@ -173,7 +237,7 @@ accordionProto = {
       $togglers.removeClass(this.options.togglerClass);
       this.$togglers = this.$togglers.not($togglers);
     } else {
-      args = u$.detach(this, ns, '$togglers', '$container', '$folds');
+      args = u$.detach(this, ns, '$container', '$togglers', '$folds');
     }
 
     args || (args = [$togglers]);
@@ -280,26 +344,6 @@ accordionProto = {
   },
 
   /**
-   * Adds new togglers to `this.$togglers` and attaches events. If
-   * `isDelegate` is deliberately set to `false`, then it is assumed
-   * that the passed-in triggers are child elements of existing triggers.
-   *
-   * @param $togglers The new elements that will toggle accordion folds.
-   * @param isDelegate Ignored by default. If set to Boolean `false`, then
-   *        no click event will be added, just `this.options.togglerClass`.
-   */
-  add: function($togglers, isDelegate) {
-    if (this.$togglers && isDelegate === false) {
-      $togglers.addClass(this.options.togglerClass);
-    } else {
-      this.$togglers = this.$togglers?
-          this.$togglers.add($togglers) : $togglers;
-      
-      this.attach($togglers);
-    }
-  },
-
-  /**
    * Emits the specified event, executing any registered callbacks.
    * Either a Backbone-style event emitter can used in the options,
    * or functions added as options (e.g., `onBeforeShow: function() {}`)
@@ -323,11 +367,52 @@ ajaxAccordionProto = $.extend(Object.create(accordionProto), u$.cacheMixin,
     u$.loaderMixin, {
 
   options: $.extend({}, defaults, {
+    // EVENTS
+    // beforeSend($fold, index, $togglers, xhr, settings)
+    // ajaxError($fold, index, $togglers, xhr, errorType, error)
+
+    /**
+     * The CSS class applied to the loader element. Loaders also have
+     * the class `loader`.
+     */
     // loaderClass: 'loader--accordion',
+
+    /**
+     * The HTML for the loader element. `<div />` is used by default.
+     */
     // loaderHTML: '<div />'
+
+    /**
+     * Is the AJAX data coming back as HTML or JSON? If JSON, then
+     * either the built-in templating engine will be used (if the
+     * `template` option is a string) or you can use another more
+     * powerful engine like Handlebars (if `template` is a function).
+     */
     // responseType: 'html', /* default; or 'json'*/
-    // query: '' || function($toggler) {},
-    // template: '<div>{{field}}</div>' || function($container, data) {}
+
+    /**
+     * Function that generates the string passed to `$.ajax`'s `data`
+     * attribute. If no function is provided, then an empty string is
+     * used instead.
+     *
+     * @param $toggler The `$` element that was clicked.
+     *
+     * @returns The generated query string.
+     */
+    // query: function($toggler) {},
+    
+    /**
+     * The template for converting JSON to HTML. Only needed if the
+     * response type is 'json'. If a string, then the simple internal
+     * engine is used. If a function, then you will be responsible
+     * for calling a templating engine in that function and adding the
+     * HTML to the passed-in fold.
+     *
+     * Function params:
+     * @param $container The `$` element that will be populated with HTML.
+     * @param data The JSON object (object, not JSON string)
+     */
+    // template: '<div>{{field}}</div>' || function($fold, data) {}
 
     /**
      * Should the AJAX results be cached? If `true`, then the URL and the
@@ -363,7 +448,7 @@ ajaxAccordionProto = $.extend(Object.create(accordionProto), u$.cacheMixin,
    * @param index The index of the fold in the collection.
    */
   load: function($fold, index) {
-    var query = this.options.query,
+    var query = this.options.query || '',
       cache;
 
     if ($.isFunction(query)) {

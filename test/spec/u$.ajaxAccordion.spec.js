@@ -31,7 +31,8 @@ describe('Zepto-Compatible jQuery AJAX Accordion', function() {
       folds: $folds,
       responseType: 'json',
       url: '/path/to/ajax.json',
-      template: '<div data-id="{{id}}">{{text}}</div>'
+      template: '<div data-id="{{id}}">{{text}}</div>',
+      setAriaAttributes: false
     });
   });
   afterEach(function() {
